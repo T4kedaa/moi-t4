@@ -1,0 +1,166 @@
+// Паттерн Singleton: для управления коллекцией фильмов
+public class HomeTheaterCollection
+{
+    private static HomeTheaterCollection? _instance = null;
+    private List<Movie> _movies = new List<Movie>();
+
+    private HomeTheaterCollection() { }
+
+    public static HomeTheaterCollection Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = new HomeTheaterCollection();
+            return _instance!;
+        }
+    }
+
+    public void AddMovie(Movie movie)
+    {
+        _movies.Add(movie);
+    }
+
+    public IEnumerable<Movie> GetMovies()
+    {
+        return _movies;
+    }
+
+    public IEnumerable<Movie> GetMoviesByAge(int minAge, int maxAge)
+    {
+        return _movies.Where(m => m.AgeRestriction >= minAge && m.AgeRestriction <= maxAge);
+    }
+
+    public IEnumerable<Movie> GetMoviesSortedByDuration()
+    {
+        return _movies.OrderBy(m => m.Duration);
+    }
+}
+
+// Абстрактный класс фильма
+public abstract class Movie
+{
+    public string Title { get; set; }
+    public int Duration { get; set; } // В минутах
+    public int AgeRestriction { get; set; } // Возрастное ограничение
+
+    protected Movie(string title, int duration, int ageRestriction)
+    {
+        Title = title;
+        Duration = duration;
+        AgeRestriction = ageRestriction;
+    }
+
+    public override string ToString()
+    {
+        return $"{Title} ({Duration} мин), Возрастное ограничение: {AgeRestriction}+";
+    }
+}
+
+// Паттерн Factory Method: создание различных жанров фильмов
+public abstract class MovieFactory
+{
+    public abstract Movie CreateMovie(string title, int duration, int ageRestriction);
+}
+
+public class DramaFactory : MovieFactory
+{
+    public override Movie CreateMovie(string title, int duration, int ageRestriction)
+    {
+        return new Drama(title, duration, ageRestriction);
+    }
+}
+
+public class ComedyFactory : MovieFactory
+{
+    public override Movie CreateMovie(string title, int duration, int ageRestriction)
+    {
+        return new Comedy(title, duration, ageRestriction);
+    }
+}
+
+public class ThrillerFactory : MovieFactory
+{
+    public override Movie CreateMovie(string title, int duration, int ageRestriction)
+    {
+        return new Thriller(title, duration, ageRestriction);
+    }
+}
+
+// Конкретные жанры фильмов
+public class Drama : Movie
+{
+    public Drama(string title, int duration, int ageRestriction) : base(title, duration, ageRestriction) { }
+}
+
+public class Comedy : Movie
+{
+    public Comedy(string title, int duration, int ageRestriction) : base(title, duration, ageRestriction) { }
+}
+
+public class Thriller : Movie
+{
+    public Thriller(string title, int duration, int ageRestriction) : base(title, duration, ageRestriction) { }
+}
+
+// Паттерн Builder: формирование коллекции фильмов
+public class MovieCollectionBuilder
+{
+    private readonly HomeTheaterCollection _collection = HomeTheaterCollection.Instance;
+
+    public void AddDrama(string title, int duration, int ageRestriction)
+    {
+        var factory = new DramaFactory();
+        _collection.AddMovie(factory.CreateMovie(title, duration, ageRestriction));
+    }
+
+    public void AddComedy(string title, int duration, int ageRestriction)
+    {
+        var factory = new ComedyFactory();
+        _collection.AddMovie(factory.CreateMovie(title, duration, ageRestriction));
+    }
+
+    public void AddThriller(string title, int duration, int ageRestriction)
+    {
+        var factory = new ThrillerFactory();
+        _collection.AddMovie(factory.CreateMovie(title, duration, ageRestriction));
+    }
+
+    public HomeTheaterCollection Build()
+    {
+        return _collection;
+    }
+}
+
+// Пример использования
+public class Program
+{
+    public static void Main()
+    {
+        var builder = new MovieCollectionBuilder();
+
+        builder.AddDrama("The Shawshank Redemption", 142, 16);
+        builder.AddComedy("Superbad", 113, 18);
+        builder.AddThriller("Se7en", 127, 18);
+
+        var collection = builder.Build();
+
+        Console.WriteLine("Все фильмы:");
+        foreach (var movie in collection.GetMovies())
+        {
+            Console.WriteLine(movie);
+        }
+
+        Console.WriteLine("\nФильмы, подходящие для возрастного диапазона 16-18:");
+        foreach (var movie in collection.GetMoviesByAge(16, 18))
+        {
+            Console.WriteLine(movie);
+        }
+
+        Console.WriteLine("\nФильмы, отсортированные по длительности:");
+        foreach (var movie in collection.GetMoviesSortedByDuration())
+        {
+            Console.WriteLine(movie);
+        }
+    }
+}
