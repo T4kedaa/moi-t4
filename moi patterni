@@ -139,7 +139,7 @@ public class Program
     {
         var builder = new MovieCollectionBuilder();
 
-        builder.AddDrama("The Shawshank Redemption", 142, 16);
+        builder.AddDrama("Scream", 142, 16);
         builder.AddComedy("Superbad", 113, 18);
         builder.AddThriller("Se7en", 127, 18);
 
